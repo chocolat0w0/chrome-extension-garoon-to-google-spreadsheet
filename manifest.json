@@ -1,0 +1,22 @@
+{
+    "name": "Garoon to Google Spreadsheet",
+    "description": "Garoon のスケジュールを定期的に取得し、Google のスプレッドシートに記入する。",
+    "version": "1.0",
+    "manifest_version": 3,
+    "permissions": [
+      "identity"
+    ],
+    "oauth2": {
+      "client_id": "876837121099-943s6rvpd7qsc3broci63cug3tbq4m0i.apps.googleusercontent.com",
+      "scopes": [
+        "https://www.googleapis.com/auth/spreadsheets"
+      ]
+    },
+    "background": {
+      "service_worker": "background.js"
+    },
+    "action": {
+      "default_popup": "popup.html",
+      "default_icon": "hello_extensions.png"
+    }
+  }
