@@ -4,7 +4,7 @@
     "version": "1.0",
     "manifest_version": 3,
     "permissions": [
-      "identity"
+      "identity", "storage"
     ],
     "oauth2": {
       "client_id": "876837121099-943s6rvpd7qsc3broci63cug3tbq4m0i.apps.googleusercontent.com",
@@ -18,5 +18,6 @@
     "action": {
       "default_popup": "popup.html",
       "default_icon": "hello_extensions.png"
-    }
+    },
+    "options_page": "options.html"
   }
