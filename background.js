@@ -1,5 +1,34 @@
 chrome.runtime.onInstalled.addListener(() => {
-  console.log("Extension installed");
+  // 定期実行アラームを設定
+  // TODO: ドメイン未設定の場合設定を促す
+  chrome.alarms.create("garoonAlarm", {
+    periodInMinutes: 1,
+  });
+});
+
+// アラーム発火
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === "garoonAlarm") {
+    console.log("fire alarm");
+    chrome.storage.sync.get(["garoonDomain"], (result) => {
+      console.log(result);
+      const targetDomain = result.garoonDomain;
+      // TODO: ドメイン未設定の場合設定を促す
+
+      chrome.tabs.query({}, (tabs) => {
+        for (let tab of tabs) {
+          if (tab.url && tab.url.includes(targetDomain)) {
+            console.log("fire alarm: " + new Date().toISOString());
+            chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              files: ["content/fetch-garoon.js"],
+              world: "MAIN",
+            });
+          }
+        }
+      });
+    });
+  }
 });
 
 async function writeToSheet(spreadsheetId, sheetName, data) {
@@ -36,6 +65,19 @@ function getOAuthToken() {
     });
   });
 }
+
+// function executeOnSpecificDomain() {
+//   const targetDomain = "example.com"; // ここに対象のドメインを指定
+
+//   chrome.tabs.query({}, (tabs) => {
+//     for (let tab of tabs) {
+//       if (tab.url.includes(targetDomain)) {
+//         // content.jsを実行する
+//         console.log(targetDomain + ", " + tab.id);
+//       }
+//     }
+//   });
+// }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === "writeToSheet") {
