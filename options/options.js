@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     ["garoonDomain", "spreadsheetId", "sheetName"],
     (result) => {
       if (result.garoonDomain) {
-        document.getElementById("spreadsheetId").value = result.garoonDomain;
+        document.getElementById("garoonDomain").value = result.garoonDomain;
       }
       if (result.spreadsheetId) {
         document.getElementById("spreadsheetId").value = result.spreadsheetId;
