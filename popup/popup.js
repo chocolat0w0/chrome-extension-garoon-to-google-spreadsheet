@@ -1,23 +1,21 @@
 document.addEventListener("DOMContentLoaded", () => {
-  chrome.storage.sync.get(["spreadsheetId", "sheetName"], (result) => {
-    if (result.spreadsheetId) {
-      document.getElementById("spreadsheetId").value = result.spreadsheetId;
-    }
-    if (result.sheetName) {
-      document.getElementById("sheetName").value = result.sheetName;
+  chrome.action.getBadgeText({}, function (badgeText) {
+    if (badgeText === "!") {
+      document.getElementById("success").style.display = "none";
+      document.getElementById("error").style.display = "block";
+      chrome.storage.local.get("error", function (result) {
+        if (result.error) {
+          document.getElementById("errorDetails").innerText = result.error;
+        }
+      });
+    } else {
+      document.getElementById("success").style.display = "block";
+      document.getElementById("error").style.display = "none";
+      chrome.storage.local.get("success", function (result) {
+        if (result.success) {
+          document.getElementById("lastUpdatedAt").innerText = result.success;
+        }
+      });
     }
   });
-});
-
-document.getElementById("writeButton").addEventListener("click", () => {
-  const spreadsheetId = document.getElementById("spreadsheetId").value;
-  const sheetName = document.getElementById("sheetName").value;
-  const data = document.getElementById("data").value;
-  const sheetColumns = JSON.stringify([[data]]);
-  chrome.runtime.sendMessage(
-    { action: "writeToSheet", data: sheetColumns, spreadsheetId, sheetName },
-    (response) => {
-      console.log(response.status);
-    }
-  );
 });

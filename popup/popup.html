@@ -1,14 +1,23 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>Google Sheets Writer</title>
-  </head>
-  <body>
-    <h1>Write to Google Sheets</h1>
-    <input type="text" id="spreadsheetId" placeholder="Enter spreadsheet ID" />
-    <input type="text" id="sheetName" placeholder="Enter sheet name" />
-    <input type="text" id="data" placeholder="Enter data to write" />
-    <button id="writeButton">Write to Sheet</button>
-    <script src="popup.js"></script>
-  </body>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Status</title>
+  <link rel="stylesheet" href="../common/milligram.min.css" />
+</head>
+
+<body style="width: 300px; padding:1rem;">
+  <section id="success">
+    <h3 class="h3">Updated successfully</h3>
+    <p>Last updated at: <span id="lastUpdatedAt">(no data)</span></p>
+  </section>
+  <section id="error">
+    <h3>Error</h3>
+    <p id="errorDetails"></p>
+  </section>
+  <script src="popup.js"></script>
+</body>
+
 </html>
