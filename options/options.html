@@ -16,9 +16,13 @@
       <h2>Garoon</h2>
       <p>This extension will attempt to retrieve the schedule from the specified domain's page.</p>
 
-      <label for="garoonDomain" class="label-inline">Garoon Domain:</label>
+      <label for="garoonDomain">Garoon Domain:</label>
       <input type="text" id="garoonDomain" required style="margin-bottom: 0.5rem;" />
       <p>If your Garoon schedule is located at "https://hogehoge.cybozu.com/g/schedule/index.csp", please enter "hogehoge.cybozu.com".</p>
+
+      <label for="garoonInterval">Data Retrieval Frequency (minutes):</label>
+      <input type="text" id="garoonInterval" style="margin-bottom: 0.5rem;" placeholder="60" />
+      <p>Data will be retrieved at the specified interval in minutes. If left blank, the default is 60 minutes.</p>
     </section>
 
 
@@ -37,6 +41,7 @@
     <button id="save" class="button">Save</button>
 
     <p id="saved" style="display: none; margin-left: 0.5rem;">Saved successfully!</p>
+    <p id="error" style="display: none; margin-left: 0.5rem; color: red;">Error!</p>
   </div>
 </body>
 
