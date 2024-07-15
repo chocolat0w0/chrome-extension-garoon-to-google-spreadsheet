@@ -1,6 +1,6 @@
 {
   "name": "Garoon to Google Spreadsheet",
-  "description": "Garoon のスケジュールを Google のスプレッドシートに記入します。情報は定期的に取得しますが、Chrome のタブのどこかにログイン済みの Garoon が存在する必要があります。",
+  "description": "This extension records Garoon schedules into Google SpreadSheets. To periodically retrieve information, you need to have Garoon logged in on one of your Chrome tabs.",
   "version": "1.0",
   "manifest_version": 3,
   "host_permissions": ["http://*/*", "https://*/*"],
