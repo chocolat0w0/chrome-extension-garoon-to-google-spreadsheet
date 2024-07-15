@@ -1,23 +1,42 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 
 <head>
-  <title>Options</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Options | Garoon to Google Spreadsheet</title>
   <script src="options.js"></script>
+  <link rel="stylesheet" href="../common/milligram.min.css" />
 </head>
 
 <body>
   <h1>Options</h1>
   <div>
-    <label for="garoonDomain">Garoon Domain:</label>
-    <input type="text" id="garoonDomain" />
+    <section>
+      <h2>Garoon</h2>
+      <p>This extension will attempt to retrieve the schedule from the specified domain's page.</p>
 
-    <label for="spreadsheetId">Spreadsheet ID:</label>
-    <input type="text" id="spreadsheetId" />
+      <label for="garoonDomain" class="label-inline">Garoon Domain:</label>
+      <input type="text" id="garoonDomain" required style="margin-bottom: 0.5rem;" />
+      <p>If your Garoon schedule is located at "https://hogehoge.cybozu.com/g/schedule/index.csp", please enter "hogehoge.cybozu.com".</p>
+    </section>
 
-    <label for="sheetName">Sheet Name:</label>
-    <input type="text" id="sheetName" />
-    <button id="save">Save</button>
+
+    <section>
+      <h2>Google</h2>
+      <p>This extension writes the retrieved schedule to the specified Google Spreadsheet using the logged-in Google account.</p>
+
+      <label for="spreadsheetId">Spreadsheet ID:</label>
+      <input type="text" id="spreadsheetId" style="margin-bottom: 0.5rem;" />
+      <p>https://docs.google.com/spreadsheets/d/{{Spreadsheet ID}}/edit</p>
+
+      <label for="sheetName">Sheet Name:</label>
+      <input type="text" id="sheetName" style="margin-bottom: 0.5rem;" />
+      <p>"Sheet1" or any name you have assigned.</p>
+    </section>
+    <button id="save" class="button">Save</button>
+
+    <p id="saved" style="display: none; margin-left: 0.5rem;">Saved successfully!</p>
   </div>
 </body>
 
