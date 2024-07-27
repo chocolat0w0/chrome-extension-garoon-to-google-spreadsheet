@@ -33,7 +33,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document
     .getElementById("garoonInterval")
     .addEventListener("blur", (event) => {
-      if (Number.isNaN(Number(event.currentTarget.value))) {
+      const val = Number(event.currentTarget.value);
+      if (Number.isNaN(val) || val <= 0) {
         garoonIntervalErrorMessageElem.style.display = "block";
       } else {
         garoonIntervalErrorMessageElem.style.display = "none";
@@ -48,7 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const spreadsheetId = document.getElementById("spreadsheetId").value;
     const sheetName = document.getElementById("sheetName").value;
 
-    if (Number.isNaN(garoonInterval)) {
+    if (Number.isNaN(garoonInterval) || garoonInterval <= 0) {
       errorMessageElem.style.display = "inline";
       return;
     }
