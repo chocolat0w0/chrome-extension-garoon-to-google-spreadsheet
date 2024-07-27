@@ -1,7 +1,7 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const savedElem = document.getElementById("saved");
-  const errorElem = document.getElementById("error");
-  const garoonIntervalErrorElem = document.getElementById(
+  const successMessageElem = document.getElementById("saved");
+  const errorMessageElem = document.getElementById("error");
+  const garoonIntervalErrorMessageElem = document.getElementById(
     "garoonIntervalError"
   );
 
@@ -25,8 +25,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   [...document.getElementsByTagName("input")].map((target) => {
     target.addEventListener("input", () => {
-      savedElem.style.display = "none";
-      errorElem.style.display = "none";
+      successMessageElem.style.display = "none";
+      errorMessageElem.style.display = "none";
     });
   });
 
@@ -34,9 +34,9 @@ document.addEventListener("DOMContentLoaded", () => {
     .getElementById("garoonInterval")
     .addEventListener("blur", (event) => {
       if (Number.isNaN(Number(event.currentTarget.value))) {
-        garoonIntervalErrorElem.style.display = "block";
+        garoonIntervalErrorMessageElem.style.display = "block";
       } else {
-        garoonIntervalErrorElem.style.display = "none";
+        garoonIntervalErrorMessageElem.style.display = "none";
       }
     });
 
@@ -49,14 +49,31 @@ document.addEventListener("DOMContentLoaded", () => {
     const sheetName = document.getElementById("sheetName").value;
 
     if (Number.isNaN(garoonInterval)) {
-      errorElem.style.display = "inline";
+      errorMessageElem.style.display = "inline";
       return;
     }
 
     chrome.storage.sync.set(
       { garoonDomain, garoonInterval, spreadsheetId, sheetName },
       () => {
-        savedElem.style.display = "inline";
+        chrome.runtime.sendMessage({ action: "exec" }, (response) => {
+          switch (response.status) {
+            case "success":
+              successMessageElem.style.display = "inline";
+              errorMessageElem.style.display = "none";
+              break;
+
+            case "error":
+              successMessageElem.style.display = "none";
+              errorMessageElem.style.display = "inline";
+              break;
+
+            default:
+              successMessageElem.style.display = "none";
+              errorMessageElem.style.display = "inline";
+              break;
+          }
+        });
       }
     );
 

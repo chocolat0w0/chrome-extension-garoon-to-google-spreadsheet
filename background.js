@@ -2,7 +2,7 @@ const showError = (details) => {
   chrome.action.setBadgeText({ text: "!" });
   chrome.action.setBadgeBackgroundColor({ color: "#FF0000" });
   chrome.storage.local.set({ error: details }, () => {
-    console.log("Error details saved:", details);
+    console.log("Error: ", details);
   });
 };
 
@@ -21,50 +21,58 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
+const exec = (callback) => {
+  chrome.storage.sync.get(["garoonDomain"], (result) => {
+    const targetDomain = result.garoonDomain;
+
+    if (!targetDomain) {
+      showError("Please set the Garoon domain in the options.");
+      callback(false);
+    }
+
+    chrome.tabs.query({}, (tabs) => {
+      let executed = false;
+
+      for (let tab of tabs) {
+        if (
+          !executed &&
+          tab.url &&
+          tab.url.includes(targetDomain) &&
+          tab.status === "complete"
+        ) {
+          executed = true;
+          console.log("executed");
+          try {
+            chrome.scripting.executeScript({
+              target: { tabId: tab.id },
+              files: ["content/garoon.js"],
+              world: "MAIN",
+            });
+          } catch (error) {
+            showError(
+              "Garoon is either not open in a tab or the session has expired."
+            );
+            callback(false);
+          }
+        }
+      }
+
+      if (!executed) {
+        showError(
+          "Garoon is either not open in a tab or the session has expired."
+        );
+        callback(false);
+      }
+
+      callback(true);
+    });
+  });
+};
+
 // アラーム発火
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "garoonAlarm") {
-    chrome.storage.sync.get(["garoonDomain"], (result) => {
-      const targetDomain = result.garoonDomain;
-
-      if (!targetDomain) {
-        showError("Please set the Garoon domain in the options.");
-        return;
-      }
-
-      chrome.tabs.query({}, (tabs) => {
-        let executed = false;
-
-        for (let tab of tabs) {
-          if (
-            !executed &&
-            tab.url &&
-            tab.url.includes(targetDomain) &&
-            tab.active
-          ) {
-            executed = true;
-            console.log("executed");
-            try {
-              chrome.scripting.executeScript({
-                target: { tabId: tab.id },
-                files: ["content/garoon.js"],
-                world: "MAIN",
-              });
-            } catch (error) {
-              showError(
-                "Garoon is either not open in a tab or the session has expired."
-              );
-            }
-          }
-        }
-
-        if (!executed) {
-          showError(
-            "Garoon is either not open in a tab or the session has expired."
-          );
-        }
-      });
-    });
+    exec(() => {});
   }
 });
 
@@ -125,6 +133,14 @@ function getOAuthToken() {
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.action === "exec") {
+    exec((result) =>
+      result
+        ? sendResponse({ status: "success" })
+        : sendResponse({ status: "error" })
+    );
+  }
+
   if (request.action === "writeToSheet") {
     chrome.storage.sync.get(["spreadsheetId", "sheetName"], (result) => {
       if (!result.spreadsheetId || !result.sheetName) {
