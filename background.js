@@ -36,14 +36,25 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         let executed = false;
 
         for (let tab of tabs) {
-          if (!executed && tab.url && tab.url.includes(targetDomain)) {
+          if (
+            !executed &&
+            tab.url &&
+            tab.url.includes(targetDomain) &&
+            tab.active
+          ) {
             executed = true;
             console.log("executed");
-            chrome.scripting.executeScript({
-              target: { tabId: tab.id },
-              files: ["content/garoon.js"],
-              world: "MAIN",
-            });
+            try {
+              chrome.scripting.executeScript({
+                target: { tabId: tab.id },
+                files: ["content/garoon.js"],
+                world: "MAIN",
+              });
+            } catch (error) {
+              showError(
+                "Garoon is either not open in a tab or the session has expired."
+              );
+            }
           }
         }
 

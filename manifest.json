@@ -1,9 +1,9 @@
 {
   "name": "Garoon to Google Spreadsheet",
   "description": "This extension periodically records Garoon schedules into Google SpreadSheets.",
-  "version": "1.0",
+  "version": "1.1",
   "manifest_version": 3,
-  "host_permissions": ["http://*/*", "https://*/*"],
+  "host_permissions": ["<all_urls>"],
   "permissions": ["identity", "storage", "alarms", "scripting", "activeTab"],
   "oauth2": {
     "client_id": "876837121099-943s6rvpd7qsc3broci63cug3tbq4m0i.apps.googleusercontent.com",
