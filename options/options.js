@@ -1,6 +1,9 @@
 document.addEventListener("DOMContentLoaded", () => {
   const savedElem = document.getElementById("saved");
   const errorElem = document.getElementById("error");
+  const garoonIntervalErrorElem = document.getElementById(
+    "garoonIntervalError"
+  );
 
   chrome.storage.sync.get(
     ["garoonDomain", "garoonInterval", "spreadsheetId", "sheetName"],
@@ -26,6 +29,16 @@ document.addEventListener("DOMContentLoaded", () => {
       errorElem.style.display = "none";
     });
   });
+
+  document
+    .getElementById("garoonInterval")
+    .addEventListener("blur", (event) => {
+      if (Number.isNaN(Number(event.currentTarget.value))) {
+        garoonIntervalErrorElem.style.display = "block";
+      } else {
+        garoonIntervalErrorElem.style.display = "none";
+      }
+    });
 
   document.getElementById("save").addEventListener("click", () => {
     const garoonDomain = document.getElementById("garoonDomain").value;
