@@ -173,51 +173,44 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       return true;
 
     case "writeToSheet":
-      chrome.storage.sync.get(["spreadsheetId", "sheetName"], (result) => {
-        if (!result.spreadsheetId || !result.sheetName) {
-          showError("Please set the SpreadSheet information in the options.");
-          sendResponse({ status: "error" });
-        }
-        (async () => {
-          try {
-            const info = [
-              [
-                "id",
-                "start",
-                "end",
-                "subject",
-                "notes",
-                "creator",
-                "attendees",
-              ],
-              ...request.data.map((event) => {
-                return [
-                  getValue(event, "id"),
-                  getValue(event, "start.dateTime"),
-                  getValue(event, "end.dateTime"),
-                  getValue(event, "subject"),
-                  getValue(event, "notes"),
-                  getValue(event, "creator.name"),
-                  getValue(event, "attendees[].name"),
-                ];
-              }),
-            ];
-
-            await writeToSheet(result.spreadsheetId, result.sheetName, info);
-            sendResponse({ status: "success" });
-            clearError();
-            chrome.storage.local.set({ status: "success" });
-            chrome.storage.local.set(
-              { success: new Date().toLocaleString() },
-              () => {
-                console.log("Saved Successfully: ", new Date());
-              }
-            );
-          } catch (error) {
+      chrome.storage.sync.get(
+        ["spreadsheetId", "sheetName", "garoonItems"],
+        (result) => {
+          if (
+            !result.spreadsheetId ||
+            !result.sheetName ||
+            !result.garoonItems
+          ) {
+            showError("Please set the SpreadSheet information in the options.");
             sendResponse({ status: "error" });
           }
-        })();
-      });
+          (async () => {
+            try {
+              const info = [
+                result.garoonItems,
+                ...request.data.map((event) => {
+                  return result.garoonItems((item) => {
+                    return getValue(event, item);
+                  });
+                }),
+              ];
+
+              await writeToSheet(result.spreadsheetId, result.sheetName, info);
+              sendResponse({ status: "success" });
+              clearError();
+              chrome.storage.local.set({ status: "success" });
+              chrome.storage.local.set(
+                { success: new Date().toLocaleString() },
+                () => {
+                  console.log("Saved Successfully: ", new Date());
+                }
+              );
+            } catch (error) {
+              sendResponse({ status: "error" });
+            }
+          })();
+        }
+      );
       return true;
 
     default:

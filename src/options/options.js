@@ -8,25 +8,38 @@ const showMessage = (status) => {
 };
 
 document.addEventListener("DOMContentLoaded", () => {
-  const errorMessageElem = document.getElementById("error");
+  const garoonDomainElem = document.getElementById("garoonDomain");
+  const garoonIntervalElem = document.getElementById("garoonInterval");
+  const spreadsheetIdElem = document.getElementById("spreadsheetId");
+  const sheetNameElem = document.getElementById("sheetName");
+  const garoonItemsElem = document.getElementById("garoonItems");
   const garoonIntervalErrorMessageElem = document.getElementById(
     "garoonIntervalError"
   );
 
   chrome.storage.sync.get(
-    ["garoonDomain", "garoonInterval", "spreadsheetId", "sheetName"],
+    [
+      "garoonDomain",
+      "garoonInterval",
+      "spreadsheetId",
+      "sheetName",
+      "garoonItems",
+    ],
     (result) => {
       if (result.garoonDomain) {
-        document.getElementById("garoonDomain").value = result.garoonDomain;
+        garoonDomainElem.value = result.garoonDomain;
       }
       if (result.garoonInterval) {
-        document.getElementById("garoonInterval").value = result.garoonInterval;
+        garoonIntervalElem.value = result.garoonInterval;
       }
       if (result.spreadsheetId) {
-        document.getElementById("spreadsheetId").value = result.spreadsheetId;
+        spreadsheetIdElem.value = result.spreadsheetId;
       }
       if (result.sheetName) {
-        document.getElementById("sheetName").value = result.sheetName;
+        sheetNameElem.value = result.sheetName;
+      }
+      if (result.garoonItems) {
+        garoonItemsElem.value = result.garoonItems.join("\n");
       }
     }
   );
@@ -37,24 +50,21 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  document
-    .getElementById("garoonInterval")
-    .addEventListener("blur", (event) => {
-      const val = Number(event.currentTarget.value);
-      if (Number.isNaN(val) || val <= 0) {
-        garoonIntervalErrorMessageElem.style.display = "block";
-      } else {
-        garoonIntervalErrorMessageElem.style.display = "none";
-      }
-    });
+  garoonIntervalElem.addEventListener("blur", (event) => {
+    const val = Number(event.currentTarget.value);
+    if (Number.isNaN(val) || val <= 0) {
+      garoonIntervalErrorMessageElem.style.display = "block";
+    } else {
+      garoonIntervalErrorMessageElem.style.display = "none";
+    }
+  });
 
   document.getElementById("save").addEventListener("click", () => {
-    const garoonDomain = document.getElementById("garoonDomain").value;
-    const garoonInterval = Number(
-      document.getElementById("garoonInterval").value
-    );
-    const spreadsheetId = document.getElementById("spreadsheetId").value;
-    const sheetName = document.getElementById("sheetName").value;
+    const garoonDomain = garoonDomainElem.value;
+    const garoonInterval = Number(garoonIntervalElem.value);
+    const spreadsheetId = spreadsheetIdElem.value;
+    const sheetName = sheetNameElem.value;
+    const garoonItems = garoonItemsElem.value.split(/\r?\n/);
 
     if (Number.isNaN(garoonInterval) || garoonInterval <= 0) {
       showMessage("error");
@@ -67,6 +77,7 @@ document.addEventListener("DOMContentLoaded", () => {
         garoonInterval,
         spreadsheetId,
         sheetName,
+        garoonItems,
       },
       () => {
         const timer = setInterval(() => {
