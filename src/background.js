@@ -80,7 +80,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   }
 });
 
-async function clearSheetData(spreadsheetId, sheetName, token) {
+const clearSheetData = async (spreadsheetId, sheetName, token) => {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}!A1:Z:clear`;
 
   const response = await fetch(url, {
@@ -97,9 +97,9 @@ async function clearSheetData(spreadsheetId, sheetName, token) {
 
   const result = await response.json();
   return result;
-}
+};
 
-async function writeToSheet(spreadsheetId, sheetName, data) {
+const writeToSheet = async (spreadsheetId, sheetName, data) => {
   try {
     const token = await getOAuthToken();
     await clearSheetData(spreadsheetId, sheetName, token);
@@ -121,9 +121,9 @@ async function writeToSheet(spreadsheetId, sheetName, data) {
     showError("Could not write to SpreadSheet.");
     throw error;
   }
-}
+};
 
-function getOAuthToken() {
+const getOAuthToken = () => {
   return new Promise((resolve, reject) => {
     chrome.identity.getAuthToken({ interactive: true }, (token) => {
       if (chrome.runtime.lastError) {
@@ -133,7 +133,7 @@ function getOAuthToken() {
       }
     });
   });
-}
+};
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   switch (request.action) {
