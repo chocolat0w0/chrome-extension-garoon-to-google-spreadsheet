@@ -2,9 +2,7 @@ const showError = (details) => {
   chrome.action.setBadgeText({ text: "!" });
   chrome.action.setBadgeBackgroundColor({ color: "#FF0000" });
   chrome.storage.local.set({ status: "error" });
-  chrome.storage.local.set({ error: details }, () => {
-    console.error("Error: ", details);
-  });
+  chrome.storage.local.set({ error: details });
 };
 
 const clearError = () => {
@@ -77,7 +75,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     try {
       start();
     } catch (error) {
-      console.error(error);
+      showError("Unknown error");
     }
   }
 });
@@ -144,8 +142,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         start();
         sendResponse({ status: "success" });
       } catch (error) {
+        showError("Unknown error");
         sendResponse({ status: "error" });
-        console.error(error);
       }
       return true;
 
