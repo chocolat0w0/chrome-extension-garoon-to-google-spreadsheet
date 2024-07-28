@@ -1,5 +1,13 @@
+const showMessage = (status) => {
+  document.querySelectorAll("[data-message]").forEach((elem) => {
+    elem.style.display = "none";
+    if (elem.id === status) {
+      elem.style.display = "inline";
+    }
+  });
+};
+
 document.addEventListener("DOMContentLoaded", () => {
-  const successMessageElem = document.getElementById("saved");
   const errorMessageElem = document.getElementById("error");
   const garoonIntervalErrorMessageElem = document.getElementById(
     "garoonIntervalError"
@@ -25,8 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   [...document.getElementsByTagName("input")].map((target) => {
     target.addEventListener("input", () => {
-      successMessageElem.style.display = "none";
-      errorMessageElem.style.display = "none";
+      showMessage("none");
     });
   });
 
@@ -50,31 +57,30 @@ document.addEventListener("DOMContentLoaded", () => {
     const sheetName = document.getElementById("sheetName").value;
 
     if (Number.isNaN(garoonInterval) || garoonInterval <= 0) {
-      errorMessageElem.style.display = "inline";
+      showMessage("error");
       return;
     }
 
     chrome.storage.sync.set(
-      { garoonDomain, garoonInterval, spreadsheetId, sheetName },
+      {
+        garoonDomain,
+        garoonInterval,
+        spreadsheetId,
+        sheetName,
+      },
       () => {
-        chrome.runtime.sendMessage({ action: "exec" }, (response) => {
-          switch (response.status) {
-            case "success":
-              successMessageElem.style.display = "inline";
-              errorMessageElem.style.display = "none";
-              break;
+        const timer = setInterval(() => {
+          chrome.storage.local.get(["status"], (result) => {
+            if (result.status) {
+              showMessage(result.status);
 
-            case "error":
-              successMessageElem.style.display = "none";
-              errorMessageElem.style.display = "inline";
-              break;
-
-            default:
-              successMessageElem.style.display = "none";
-              errorMessageElem.style.display = "inline";
-              break;
-          }
-        });
+              if (["success", "error"].includes(result.status)) {
+                clearInterval(timer);
+              }
+            }
+          });
+        }, 500);
+        chrome.runtime.sendMessage({ action: "start" });
       }
     );
 

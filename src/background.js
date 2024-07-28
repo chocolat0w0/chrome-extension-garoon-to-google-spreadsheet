@@ -1,13 +1,15 @@
 const showError = (details) => {
   chrome.action.setBadgeText({ text: "!" });
   chrome.action.setBadgeBackgroundColor({ color: "#FF0000" });
+  chrome.storage.local.set({ status: "error" });
   chrome.storage.local.set({ error: details }, () => {
-    console.log("Error: ", details);
+    console.error("Error: ", details);
   });
 };
 
 const clearError = () => {
   chrome.action.setBadgeText({ text: "" });
+  chrome.storage.local.set({ status: "none" });
   chrome.storage.local.set({ error: null });
 };
 
@@ -21,13 +23,15 @@ chrome.runtime.onInstalled.addListener(() => {
   });
 });
 
-const exec = (callback) => {
+const start = () => {
+  chrome.storage.local.set({ status: "running" });
+
   chrome.storage.sync.get(["garoonDomain"], (result) => {
     const targetDomain = result.garoonDomain;
 
     if (!targetDomain) {
       showError("Please set the Garoon domain in the options.");
-      callback(false);
+      throw new Error();
     }
 
     chrome.tabs.query({}, (tabs) => {
@@ -52,7 +56,7 @@ const exec = (callback) => {
             showError(
               "Garoon is either not open in a tab or the session has expired."
             );
-            callback(false);
+            throw new Error();
           }
         }
       }
@@ -61,10 +65,8 @@ const exec = (callback) => {
         showError(
           "Garoon is either not open in a tab or the session has expired."
         );
-        callback(false);
+        throw new Error();
       }
-
-      callback(true);
     });
   });
 };
@@ -72,7 +74,11 @@ const exec = (callback) => {
 // アラーム発火
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "garoonAlarm") {
-    exec(() => {});
+    try {
+      start();
+    } catch (error) {
+      console.error(error);
+    }
   }
 });
 
@@ -113,10 +119,9 @@ async function writeToSheet(spreadsheetId, sheetName, data) {
         }),
       }
     );
-    const result = await response.json();
   } catch (error) {
-    console.error("Error writing to sheet:", error);
     showError("Could not write to SpreadSheet.");
+    throw error;
   }
 }
 
@@ -133,28 +138,47 @@ function getOAuthToken() {
 }
 
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === "exec") {
-    exec((result) =>
-      result
-        ? sendResponse({ status: "success" })
-        : sendResponse({ status: "error" })
-    );
-  }
-
-  if (request.action === "writeToSheet") {
-    chrome.storage.sync.get(["spreadsheetId", "sheetName"], (result) => {
-      if (!result.spreadsheetId || !result.sheetName) {
-        showError("Please set the SpreadSheet information in the options.");
-        return;
+  switch (request.action) {
+    case "start":
+      try {
+        start();
+        sendResponse({ status: "success" });
+      } catch (error) {
+        sendResponse({ status: "error" });
+        console.error(error);
       }
-      writeToSheet(result.spreadsheetId, result.sheetName, request.data);
-    });
-    sendResponse({ status: "success" });
-    clearError();
-    chrome.storage.local.set({ success: new Date().toLocaleString() }, () => {
-      console.log("Success details saved:", new Date());
-    });
-  }
+      return true;
 
-  return true;
+    case "writeToSheet":
+      chrome.storage.sync.get(["spreadsheetId", "sheetName"], (result) => {
+        if (!result.spreadsheetId || !result.sheetName) {
+          showError("Please set the SpreadSheet information in the options.");
+          sendResponse({ status: "error" });
+        }
+        (async () => {
+          try {
+            await writeToSheet(
+              result.spreadsheetId,
+              result.sheetName,
+              request.data
+            );
+            sendResponse({ status: "success" });
+            clearError();
+            chrome.storage.local.set({ status: "success" });
+            chrome.storage.local.set(
+              { success: new Date().toLocaleString() },
+              () => {
+                console.log("Saved Successfully: ", new Date());
+              }
+            );
+          } catch (error) {
+            sendResponse({ status: "error" });
+          }
+        })();
+      });
+      return true;
+
+    default:
+      sendResponse({ status: "error", details: "unknown message" });
+  }
 });

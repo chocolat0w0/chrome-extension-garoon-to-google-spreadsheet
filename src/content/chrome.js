@@ -6,10 +6,7 @@ window.addEventListener("message", (event) => {
       { action: "writeToSheet", data: event.data.data },
       (response) => {
         // ページに応答を送信
-        window.postMessage(
-          { type: "WRITE_SHEET_RES", result: response.result },
-          "*"
-        );
+        window.postMessage({ type: "WRITE_SHEET_RES", result: response }, "*");
       }
     );
   }
