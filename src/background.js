@@ -11,6 +11,31 @@ const clearError = () => {
   chrome.storage.local.set({ error: null });
 };
 
+const getValue = (obj, path) => {
+  const paths = path.split(".");
+
+  const traverse = (currentObj, remainingPaths) => {
+    if (remainingPaths.length === 0) {
+      return currentObj;
+    }
+
+    const [firstPath, ...restPaths] = remainingPaths;
+
+    if (firstPath.endsWith("[]")) {
+      const arrayPath = firstPath.slice(0, -2);
+      if (Array.isArray(currentObj[arrayPath])) {
+        return currentObj[arrayPath].map((item) => traverse(item, restPaths));
+      } else {
+        return undefined;
+      }
+    } else {
+      return traverse(currentObj[firstPath], restPaths);
+    }
+  };
+
+  return traverse(obj, paths);
+};
+
 chrome.runtime.onInstalled.addListener(() => {
   // 定期実行アラームを設定
   chrome.storage.sync.get(["garoonInterval"], (result) => {
@@ -155,11 +180,30 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         }
         (async () => {
           try {
-            await writeToSheet(
-              result.spreadsheetId,
-              result.sheetName,
-              request.data
-            );
+            const info = [
+              [
+                "id",
+                "start",
+                "end",
+                "subject",
+                "notes",
+                "creator",
+                "attendees",
+              ],
+              ...request.data.map((event) => {
+                return [
+                  getValue(event, "id"),
+                  getValue(event, "start.dateTime"),
+                  getValue(event, "end.dateTime"),
+                  getValue(event, "subject"),
+                  getValue(event, "notes"),
+                  getValue(event, "creator.name"),
+                  getValue(event, "attendees[].name"),
+                ];
+              }),
+            ];
+
+            await writeToSheet(result.spreadsheetId, result.sheetName, info);
             sendResponse({ status: "success" });
             clearError();
             chrome.storage.local.set({ status: "success" });

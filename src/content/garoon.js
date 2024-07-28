@@ -13,22 +13,8 @@ garoon.api(
   "get",
   {},
   (data) => {
-    const info = [
-      ["id", "start", "end", "subject", "notes", "creator", "attendees"],
-      ...data.data.events.map((ev) => {
-        return [
-          ev.id,
-          ev.start.dateTime,
-          ev.end.dateTime,
-          ev.subject,
-          ev.notes,
-          ev.creator.name,
-          ev.attendees.map((at) => at.name).join(","),
-        ];
-      }),
-    ];
     window.postMessage(
-      { type: "WRITE_SHEET", data: JSON.stringify(info) },
+      { type: "WRITE_SHEET", data: JSON.stringify(data.data.events) },
       "*"
     );
   }
