@@ -1,3 +1,9 @@
+importScripts("config.js");
+
+if (config.mode === "dev") {
+  importScripts("data/sample.js");
+}
+
 const showError = (details) => {
   chrome.action.setBadgeText({ text: "!" });
   chrome.action.setBadgeBackgroundColor({ color: "#FF0000" });
@@ -49,49 +55,60 @@ chrome.runtime.onInstalled.addListener(() => {
 const start = () => {
   chrome.storage.local.set({ status: "running" });
 
-  chrome.storage.sync.get(["garoonDomain"], (result) => {
-    const targetDomain = result.garoonDomain;
+  switch (config.mode) {
+    case "prod":
+      chrome.storage.sync.get(["garoonDomain"], (result) => {
+        const targetDomain = result.garoonDomain;
 
-    if (!targetDomain) {
-      showError("Please set the Garoon domain in the options.");
-      throw new Error();
-    }
+        if (!targetDomain) {
+          showError("Please set the Garoon domain in the options.");
+          throw new Error();
+        }
 
-    chrome.tabs.query({}, (tabs) => {
-      let executed = false;
+        chrome.tabs.query({}, (tabs) => {
+          let executed = false;
 
-      for (let tab of tabs) {
-        if (
-          !executed &&
-          tab.url &&
-          tab.url.includes(targetDomain) &&
-          tab.status === "complete"
-        ) {
-          executed = true;
-          console.log("executed");
-          try {
-            chrome.scripting.executeScript({
-              target: { tabId: tab.id },
-              files: ["content/garoon.js"],
-              world: "MAIN",
-            });
-          } catch (error) {
+          for (let tab of tabs) {
+            if (
+              !executed &&
+              tab.url &&
+              tab.url.includes(targetDomain) &&
+              tab.status === "complete"
+            ) {
+              executed = true;
+              console.log("executed");
+              try {
+                chrome.scripting.executeScript({
+                  target: { tabId: tab.id },
+                  files: ["content/garoon.js"],
+                  world: "MAIN",
+                });
+              } catch (error) {
+                showError(
+                  "Garoon is either not open in a tab or the session has expired."
+                );
+                throw new Error();
+              }
+            }
+          }
+
+          if (!executed) {
             showError(
               "Garoon is either not open in a tab or the session has expired."
             );
             throw new Error();
           }
-        }
-      }
+        });
+      });
+      break;
 
-      if (!executed) {
-        showError(
-          "Garoon is either not open in a tab or the session has expired."
-        );
-        throw new Error();
-      }
-    });
-  });
+    case "dev":
+      writeToSheet(sample.data.events);
+      break;
+
+    default:
+      break;
+  }
 };
 
 // アラーム発火
@@ -105,7 +122,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
   }
 });
 
-const clearSheetData = async (spreadsheetId, sheetName, token) => {
+const apiClearSheetData = async (spreadsheetId, sheetName, token) => {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}!A1:Z:clear`;
 
   const response = await fetch(url, {
@@ -124,27 +141,26 @@ const clearSheetData = async (spreadsheetId, sheetName, token) => {
   return result;
 };
 
-const writeToSheet = async (spreadsheetId, sheetName, data) => {
-  try {
-    const token = await getOAuthToken();
-    await clearSheetData(spreadsheetId, sheetName, token);
+const apiWriteToSheet = async (spreadsheetId, sheetName, data) => {
+  const token = await getOAuthToken();
+  await apiClearSheetData(spreadsheetId, sheetName, token);
 
-    const response = await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}!A1?valueInputOption=RAW`,
-      {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          values: JSON.parse(data),
-        }),
-      }
-    );
-  } catch (error) {
-    showError("Could not write to SpreadSheet.");
-    throw error;
+  const response = await fetch(
+    `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}!A1?valueInputOption=RAW`,
+    {
+      method: "PUT",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        values: data,
+      }),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Error: ${response.statusText}`);
   }
 };
 
@@ -160,6 +176,50 @@ const getOAuthToken = () => {
   });
 };
 
+const writeToSheet = (data, sendResponse) => {
+  chrome.storage.sync.get(
+    ["spreadsheetId", "sheetName", "garoonItems"],
+    (result) => {
+      if (!result.spreadsheetId || !result.sheetName || !result.garoonItems) {
+        showError("Please set the SpreadSheet information in the options.");
+        if (sendResponse) {
+          sendResponse({ status: "error" });
+        }
+      }
+      (async () => {
+        try {
+          const info = [
+            result.garoonItems,
+            ...data.map((event) => {
+              return result.garoonItems.map((item) => {
+                const value = getValue(event, item);
+                return Array.isArray(value) ? value.join(",") : value;
+              });
+            }),
+          ];
+
+          clearError();
+          await apiWriteToSheet(result.spreadsheetId, result.sheetName, info);
+          if (sendResponse) {
+            sendResponse({ status: "success" });
+          }
+          chrome.storage.local.set({ status: "success" });
+          chrome.storage.local.set(
+            { success: new Date().toLocaleString() },
+            () => {
+              console.log("Saved Successfully: ", new Date());
+            }
+          );
+        } catch (error) {
+          showError("Could not write to SpreadSheet.");
+          if (sendResponse) {
+            sendResponse({ status: "error" });
+          }
+        }
+      })();
+    }
+  );
+};
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   switch (request.action) {
     case "start":
@@ -173,44 +233,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       return true;
 
     case "writeToSheet":
-      chrome.storage.sync.get(
-        ["spreadsheetId", "sheetName", "garoonItems"],
-        (result) => {
-          if (
-            !result.spreadsheetId ||
-            !result.sheetName ||
-            !result.garoonItems
-          ) {
-            showError("Please set the SpreadSheet information in the options.");
-            sendResponse({ status: "error" });
-          }
-          (async () => {
-            try {
-              const info = [
-                result.garoonItems,
-                ...request.data.map((event) => {
-                  return result.garoonItems((item) => {
-                    return getValue(event, item);
-                  });
-                }),
-              ];
-
-              await writeToSheet(result.spreadsheetId, result.sheetName, info);
-              sendResponse({ status: "success" });
-              clearError();
-              chrome.storage.local.set({ status: "success" });
-              chrome.storage.local.set(
-                { success: new Date().toLocaleString() },
-                () => {
-                  console.log("Saved Successfully: ", new Date());
-                }
-              );
-            } catch (error) {
-              sendResponse({ status: "error" });
-            }
-          })();
-        }
-      );
+      try {
+        writeToSheet(JSON.parse(request.data), sendResponse);
+      } catch (error) {
+        showError("Invalid data format.");
+        sendResponse({ status: "error" });
+      }
       return true;
 
     default:
