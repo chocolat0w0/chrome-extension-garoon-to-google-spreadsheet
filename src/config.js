@@ -1,3 +1,3 @@
 const config = {
-  mode: "dev", // prod, dev
+  mode: "prod", // prod, dev
 };
