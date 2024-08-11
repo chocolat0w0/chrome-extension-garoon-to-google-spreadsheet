@@ -6,6 +6,7 @@
     <title>Options | Garoon to Google Spreadsheet</title>
     <script src="options.js"></script>
     <link rel="stylesheet" href="../common/milligram.min.css" />
+    <link rel="stylesheet" href="./options.css" />
   </head>
 
   <body>
@@ -35,7 +36,8 @@
         <label for="garoonInterval">Data Retrieval Frequency (minutes):</label>
         <p
           id="garoonIntervalError"
-          style="display: none; margin-bottom: 0.5rem; color: rgb(255, 0, 119)"
+          style="display: none; margin-bottom: 0.5rem"
+          class="error"
         >
           Please enter a valid number.
         </p>
@@ -116,7 +118,8 @@ attendees[].name</textarea
       <p
         id="error"
         data-message
-        style="display: none; margin-left: 0.5rem; color: rgb(255, 0, 119)"
+        style="display: none; margin-left: 0.5rem"
+        class="error"
       >
         Error!
       </p>
