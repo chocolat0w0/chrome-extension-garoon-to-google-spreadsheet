@@ -103,7 +103,19 @@ const start = () => {
       break;
 
     case "dev":
-      writeToSheet(sample.data.events);
+      chrome.storage.sync.get(["spreadsheetEnabled"], (result) => {
+        if (result.spreadsheetEnabled) {
+          writeToSheet(sample.data.events);
+        } else {
+          chrome.storage.local.set({ status: "success" });
+          chrome.storage.local.set(
+            { success: new Date().toLocaleString() },
+            () => {
+              console.log("Saved Successfully: ", new Date());
+            }
+          );
+        }
+      });
       break;
 
     default:
@@ -232,9 +244,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       }
       return true;
 
-    case "writeToSheet":
+    case "write":
       try {
-        writeToSheet(JSON.parse(request.data), sendResponse);
+        chrome.storage.sync.get(["spreadsheetEnabled"], (result) => {
+          if (result.spreadsheetEnabled) {
+            writeToSheet(JSON.parse(request.data), sendResponse);
+          }
+        });
       } catch (error) {
         showError("Invalid data format.");
         sendResponse({ status: "error" });

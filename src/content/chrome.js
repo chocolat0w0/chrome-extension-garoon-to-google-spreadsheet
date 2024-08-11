@@ -1,12 +1,12 @@
 window.addEventListener("message", (event) => {
   if (event.source !== window) return;
 
-  if (event.data && event.data.type === "WRITE_SHEET") {
+  if (event.data && event.data.type === "WRITE_DATA") {
     chrome.runtime.sendMessage(
-      { action: "writeToSheet", data: event.data.data },
+      { action: "write", data: event.data.data },
       (response) => {
         // ページに応答を送信
-        window.postMessage({ type: "WRITE_SHEET_RES", result: response }, "*");
+        window.postMessage({ type: "WRITE_DATA_RES", result: response }, "*");
       }
     );
   }

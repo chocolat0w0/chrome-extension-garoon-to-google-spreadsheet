@@ -2,7 +2,7 @@ if (typeof garoonInitialized === "undefined") {
   window.addEventListener("message", (event) => {
     if (event.source !== window) return;
 
-    if (event.data && event.data.type === "WRITE_SHEET_RES") {
+    if (event.data && event.data.type === "WRITE_DATA_RES") {
       console.log("Response from extension:", event.data.result);
     }
   });
@@ -14,7 +14,7 @@ garoon.api(
   {},
   (data) => {
     window.postMessage(
-      { type: "WRITE_SHEET", data: JSON.stringify(data.data.events) },
+      { type: "WRITE_DATA", data: JSON.stringify(data.data.events) },
       "*"
     );
   }

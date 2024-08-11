@@ -54,10 +54,26 @@
 
       <section>
         <h2>Google</h2>
+        <section>
+          <h3>SpreadSheet</h3>
+
         <p>
           This extension writes the retrieved schedule to the specified Google
           Spreadsheet using the logged-in Google account.
         </p>
+
+          <fieldset>
+            <legend>Enable:</legend>
+            <input
+              type="checkbox"
+              id="spreadsheetEnabled"
+              style="margin-bottom: 0.5rem"
+              checked="checked"
+            />
+            <label for="spreadsheetEnabled" class="label-inline"
+              >Enable sync to SpreadSheet</label
+            >
+          </fieldset>
 
         <label for="spreadsheetId">Spreadsheet ID:</label>
         <input
@@ -106,6 +122,7 @@ attendees[].name</textarea
           >
           to check available key names.
         </p>
+        </section>
       </section>
       <button id="save" class="button">Save and Execute</button>
 

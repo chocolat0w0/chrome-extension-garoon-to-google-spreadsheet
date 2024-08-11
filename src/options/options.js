@@ -10,6 +10,7 @@ const showMessage = (status) => {
 document.addEventListener("DOMContentLoaded", () => {
   const garoonDomainElem = document.getElementById("garoonDomain");
   const garoonIntervalElem = document.getElementById("garoonInterval");
+  const spreadsheetEnabledElem = document.getElementById("spreadsheetEnabled");
   const spreadsheetIdElem = document.getElementById("spreadsheetId");
   const sheetNameElem = document.getElementById("sheetName");
   const garoonItemsElem = document.getElementById("garoonItems");
@@ -21,6 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
     [
       "garoonDomain",
       "garoonInterval",
+      "spreadsheetEnabled",
       "spreadsheetId",
       "sheetName",
       "garoonItems",
@@ -31,6 +33,9 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (result.garoonInterval) {
         garoonIntervalElem.value = result.garoonInterval;
+      }
+      if (typeof result.spreadsheetEnabled !== "undefined") {
+        spreadsheetEnabledElem.checked = result.spreadsheetEnabled;
       }
       if (result.spreadsheetId) {
         spreadsheetIdElem.value = result.spreadsheetId;
@@ -62,6 +67,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("save").addEventListener("click", () => {
     const garoonDomain = garoonDomainElem.value;
     const garoonInterval = Number(garoonIntervalElem.value);
+    const spreadsheetEnabled = spreadsheetEnabledElem.checked;
     const spreadsheetId = spreadsheetIdElem.value;
     const sheetName = sheetNameElem.value;
     const garoonItems = garoonItemsElem.value.split(/\r?\n/);
@@ -75,6 +81,7 @@ document.addEventListener("DOMContentLoaded", () => {
       {
         garoonDomain,
         garoonInterval,
+        spreadsheetEnabled,
         spreadsheetId,
         sheetName,
         garoonItems,
