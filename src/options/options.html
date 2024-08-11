@@ -54,13 +54,50 @@
 
       <section>
         <h2>Google</h2>
+
+        <section>
+          <h3>Calendar</h3>
+
+          <p>
+            This extension writes the retrieved schedule to the specified Google
+            Calendar using the logged-in Google account. Note: Existing future
+            synced events in the calendar will be deleted before the Garoon data
+            is overwritten.
+          </p>
+
+          <fieldset>
+            <legend>Enable:</legend>
+            <input
+              type="checkbox"
+              id="calendarEnabled"
+              style="margin-bottom: 0.5rem"
+              checked="checked"
+            />
+            <label for="calendarEnabled" class="label-inline"
+              >Enable sync to Calendar</label
+            >
+          </fieldset>
+
+          <label for="calendarId">Calendar ID:</label>
+          <input
+            type="text"
+            id="calendarId"
+            style="margin-bottom: 0.5rem"
+            placeholder="o9j1g298st9kio0@group.calendar.google.com"
+          />
+          <p>
+            You can set the Calendar ID found in the "Settings for my calendars"
+            section of your calendar settings.
+          </p>
+        </section>
+
         <section>
           <h3>SpreadSheet</h3>
 
-        <p>
-          This extension writes the retrieved schedule to the specified Google
-          Spreadsheet using the logged-in Google account.
-        </p>
+          <p>
+            This extension writes the retrieved schedule to the specified Google
+            Spreadsheet using the logged-in Google account.
+          </p>
 
           <fieldset>
             <legend>Enable:</legend>
@@ -75,35 +112,32 @@
             >
           </fieldset>
 
-        <label for="spreadsheetId">Spreadsheet ID:</label>
-        <input
-          type="text"
-          id="spreadsheetId"
-          required
-          style="margin-bottom: 0.5rem"
-          placeholder="1-APWhdqywAfaLyFkwwHj-GI-RP-Hfmvkh06hl6KjPoUlCzh-ACf"
-        />
-        <p>https://docs.google.com/spreadsheets/d/{{Spreadsheet ID}}/edit</p>
+          <label for="spreadsheetId">Spreadsheet ID:</label>
+          <input
+            type="text"
+            id="spreadsheetId"
+            style="margin-bottom: 0.5rem"
+            placeholder="1-APWhdqywAfaLyFkwwHj-GI-RP-Hfmvkh06hl6KjPoUlCzh-ACf"
+          />
+          <p>https://docs.google.com/spreadsheets/d/{{Spreadsheet ID}}/edit</p>
 
-        <label for="sheetName">Sheet Name:</label>
-        <input
-          type="text"
-          id="sheetName"
-          required
-          style="margin-bottom: 0.5rem"
-          placeholder="Sheet1"
-        />
-        <p>"Sheet1" or any name you have assigned.</p>
+          <label for="sheetName">Sheet Name:</label>
+          <input
+            type="text"
+            id="sheetName"
+            style="margin-bottom: 0.5rem"
+            placeholder="Sheet1"
+          />
+          <p>"Sheet1" or any name you have assigned.</p>
 
-        <label for="garoonItems">Garoon data items</label>
-        <textarea
-          name="garoonItems"
-          id="garoonItems"
-          required
-          rows="5"
-          style="height: auto; margin-bottom: 0.5rem"
-          placeholder="id&#13;start.dateTime&#13;end.dateTime"
-        >
+          <label for="garoonItems">Garoon data items:</label>
+          <textarea
+            name="garoonItems"
+            id="garoonItems"
+            rows="5"
+            style="height: auto; margin-bottom: 0.5rem"
+            placeholder="id&#13;start.dateTime&#13;end.dateTime"
+          >
 id
 start.dateTime
 end.dateTime
@@ -111,17 +145,17 @@ subject
 notes
 creator.name
 attendees[].name</textarea
-        >
-        <p>
-          Data items to sync with Garoon. Please refer to the
-          <a
-            href="https://cybozu.dev/ja/garoon/docs/overview/schedule-object/"
-            target="_blank"
-            rel="noopener noreferrer"
-            >Garoon API document</a
           >
-          to check available key names.
-        </p>
+          <p>
+            Data items to sync with Garoon. Please refer to the
+            <a
+              href="https://cybozu.dev/ja/garoon/docs/overview/schedule-object/"
+              target="_blank"
+              rel="noopener noreferrer"
+              >Garoon API document</a
+            >
+            to check available key names.
+          </p>
         </section>
       </section>
       <button id="save" class="button">Save and Execute</button>

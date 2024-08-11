@@ -5,7 +5,7 @@ window.addEventListener("message", (event) => {
     chrome.runtime.sendMessage(
       { action: "write", data: event.data.data },
       (response) => {
-        // ページに応答を送信
+        // Send response to page
         window.postMessage({ type: "WRITE_DATA_RES", result: response }, "*");
       }
     );

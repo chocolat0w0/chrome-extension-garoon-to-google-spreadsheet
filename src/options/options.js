@@ -10,6 +10,8 @@ const showMessage = (status) => {
 document.addEventListener("DOMContentLoaded", () => {
   const garoonDomainElem = document.getElementById("garoonDomain");
   const garoonIntervalElem = document.getElementById("garoonInterval");
+  const calendarEnabledElem = document.getElementById("calendarEnabled");
+  const calendarIdElem = document.getElementById("calendarId");
   const spreadsheetEnabledElem = document.getElementById("spreadsheetEnabled");
   const spreadsheetIdElem = document.getElementById("spreadsheetId");
   const sheetNameElem = document.getElementById("sheetName");
@@ -22,6 +24,8 @@ document.addEventListener("DOMContentLoaded", () => {
     [
       "garoonDomain",
       "garoonInterval",
+      "calendarEnabled",
+      "calendarId",
       "spreadsheetEnabled",
       "spreadsheetId",
       "sheetName",
@@ -33,6 +37,12 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       if (result.garoonInterval) {
         garoonIntervalElem.value = result.garoonInterval;
+      }
+      if (typeof result.calendarEnabled !== "undefined") {
+        calendarEnabledElem.checked = result.calendarEnabled;
+      }
+      if (result.calendarId) {
+        calendarIdElem.value = result.calendarId;
       }
       if (typeof result.spreadsheetEnabled !== "undefined") {
         spreadsheetEnabledElem.checked = result.spreadsheetEnabled;
@@ -67,6 +77,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("save").addEventListener("click", () => {
     const garoonDomain = garoonDomainElem.value;
     const garoonInterval = Number(garoonIntervalElem.value);
+    const calendarEnabled = calendarEnabledElem.checked;
+    const calendarId = calendarIdElem.value;
     const spreadsheetEnabled = spreadsheetEnabledElem.checked;
     const spreadsheetId = spreadsheetIdElem.value;
     const sheetName = sheetNameElem.value;
@@ -81,6 +93,8 @@ document.addEventListener("DOMContentLoaded", () => {
       {
         garoonDomain,
         garoonInterval,
+        calendarEnabled,
+        calendarId,
         spreadsheetEnabled,
         spreadsheetId,
         sheetName,

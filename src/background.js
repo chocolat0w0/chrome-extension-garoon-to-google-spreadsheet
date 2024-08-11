@@ -103,19 +103,26 @@ const start = () => {
       break;
 
     case "dev":
-      chrome.storage.sync.get(["spreadsheetEnabled"], (result) => {
-        if (result.spreadsheetEnabled) {
-          writeToSheet(sample.data.events);
-        } else {
-          chrome.storage.local.set({ status: "success" });
-          chrome.storage.local.set(
-            { success: new Date().toLocaleString() },
-            () => {
-              console.log("Saved Successfully: ", new Date());
-            }
-          );
+      chrome.storage.sync.get(
+        ["calendarEnabled", "spreadsheetEnabled"],
+        (result) => {
+          if (result.calendarEnabled) {
+            writeToCalendar(sample.data.events);
+          }
+          if (result.spreadsheetEnabled) {
+            writeToSheet(sample.data.events);
+          }
+          if (!result.calendarEnabled && !result.spreadsheetEnabled) {
+            chrome.storage.local.set({ status: "success" });
+            chrome.storage.local.set(
+              { success: new Date().toLocaleString() },
+              () => {
+                console.log("Saved Successfully: ", new Date());
+              }
+            );
+          }
         }
-      });
+      );
       break;
 
     default:
@@ -133,6 +140,143 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     }
   }
 });
+const getOAuthToken = () => {
+  return new Promise((resolve, reject) => {
+    chrome.identity.getAuthToken({ interactive: true }, (token) => {
+      if (chrome.runtime.lastError) {
+        reject(chrome.runtime.lastError);
+      } else {
+        resolve(token);
+      }
+    });
+  });
+};
+
+const apiGetFutureEvents = async (calendaId, token) => {
+  const now = new Date().toISOString();
+  const response = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/${calendaId}/events?timeMin=${now}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (response.ok) {
+    const events = await response.json();
+    return events.items;
+  } else {
+    console.error("Error fetching events:", response.statusText);
+    return [];
+  }
+};
+
+const apiDeleteEvent = async (calendarId, eventId, token) => {
+  const response = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events/${eventId}`,
+    {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  if (response.ok) {
+    console.log(`Event with ID: ${eventId} deleted successfully`);
+  } else {
+    console.error(
+      `Error deleting event with ID: ${eventId}`,
+      response.statusText
+    );
+  }
+};
+
+const clearFutureEvents = async (calendarId, token) => {
+  apiGetFutureEvents(calendarId, token).then((events) => {
+    events.forEach((event) => {
+      if (event.description.includes("Garoon ID:")) {
+        apiDeleteEvent(calendarId, event.id, token);
+      }
+    });
+  });
+};
+
+const apiWriteToCalendar = async (event, calendarId, token) => {
+  const response = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(event),
+    }
+  );
+
+  if (response.ok) {
+    const eventData = await response.json();
+    console.log("Event created:", eventData.htmlLink);
+  } else {
+    console.error("Error creating event:", response.statusText);
+  }
+};
+
+const writeToCalendar = (data, sendResponse) => {
+  chrome.storage.sync.get(["calendarId"], async (result) => {
+    if (!result.calendarId) {
+      showError("Please set the Calendar information in the options.");
+      if (sendResponse) {
+        sendResponse({ status: "error" });
+      }
+    }
+
+    const token = await getOAuthToken();
+
+    await clearFutureEvents(result.calendarId, token);
+
+    Promise.all(
+      data.map(async (d) => {
+        const event = {
+          summary: d.subject,
+          description: `${d.notes}\r\n\r\n----------\r\nGaroon ID: ${d.id}`,
+          start: {
+            dateTime: d.start.dateTime,
+            timeZone: d.start.timeZone,
+          },
+          end: {
+            dateTime: d.end.dateTime,
+            timeZone: d.end.timeZone,
+          },
+        };
+
+        await apiWriteToCalendar(event, result.calendarId, token);
+      })
+    )
+      .then(() => {
+        if (sendResponse) {
+          sendResponse({ status: "success" });
+        }
+        chrome.storage.local.set({ status: "success" });
+        chrome.storage.local.set(
+          { success: new Date().toLocaleString() },
+          () => {
+            console.log("Saved Successfully: ", new Date());
+          }
+        );
+      })
+      .catch((error) => {
+        showError("Could not write to Calendar.");
+        if (sendResponse) {
+          sendResponse({ status: "error" });
+        }
+      });
+  });
+};
 
 const apiClearSheetData = async (spreadsheetId, sheetName, token) => {
   const url = `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}!A1:Z:clear`;
@@ -174,18 +318,6 @@ const apiWriteToSheet = async (spreadsheetId, sheetName, data) => {
   if (!response.ok) {
     throw new Error(`Error: ${response.statusText}`);
   }
-};
-
-const getOAuthToken = () => {
-  return new Promise((resolve, reject) => {
-    chrome.identity.getAuthToken({ interactive: true }, (token) => {
-      if (chrome.runtime.lastError) {
-        reject(chrome.runtime.lastError);
-      } else {
-        resolve(token);
-      }
-    });
-  });
 };
 
 const writeToSheet = (data, sendResponse) => {
@@ -246,6 +378,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     case "write":
       try {
+        chrome.storage.sync.get(["calendarEnabled"], (result) => {
+          if (result.calendarEnabled) {
+            writeToCalendar(JSON.parse(request.data), sendResponse);
+          }
+        });
         chrome.storage.sync.get(["spreadsheetEnabled"], (result) => {
           if (result.spreadsheetEnabled) {
             writeToSheet(JSON.parse(request.data), sendResponse);

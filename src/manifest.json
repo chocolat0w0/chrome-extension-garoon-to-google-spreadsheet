@@ -1,13 +1,13 @@
 {
-  "name": "Garoon to Google Spreadsheet",
-  "description": "This extension periodically records Garoon schedules into Google SpreadSheets.",
-  "version": "1.1",
+  "name": "Garoon to Google",
+  "description": "This extension periodically records Garoon schedules into Google Calendar and SpreadSheets.",
+  "version": "1.2",
   "manifest_version": 3,
   "host_permissions": ["<all_urls>"],
   "permissions": ["identity", "storage", "alarms", "scripting", "activeTab"],
   "oauth2": {
     "client_id": "876837121099-943s6rvpd7qsc3broci63cug3tbq4m0i.apps.googleusercontent.com",
-    "scopes": ["https://www.googleapis.com/auth/spreadsheets"]
+    "scopes": ["https://www.googleapis.com/auth/calendar.events", "https://www.googleapis.com/auth/spreadsheets"]
   },
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsnTbKTm9YFo22VYz0r/kElunhD9eGdzsNQmNK4CEd0SzvB0sU4MC9LHTmoVaUXhVVwupyri1qrwWrJet+S7llK+o/B/ucJsQwXbEfKU8llFuNKusY+BevXtHw/JvEkHcXkgrozfsfis9HU+d4WN5PH8WQgaoCOll1ajiIerjIWad6skXjI35rPnGgQGg8LUqlFnbVoTbji61V6zFwsXyvmdyZoDKwIEsD1FlKOa+2wi3V/LQZNWSaIM8JMCX8GTsxrl+yU5UL1JI09plb9buWb0rmGVdsRHMnA5eNUh7b9hU5GLP1DZ8FgDujzIb4pKU1lAnrVM5VhmYFGc3w9wKVwIDAQAB",
   "background": {
