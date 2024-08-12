@@ -198,7 +198,7 @@ const apiDeleteEvent = async (calendarId, eventId, token) => {
 const clearFutureEvents = async (calendarId, token) => {
   apiGetFutureEvents(calendarId, token).then((events) => {
     events.forEach((event) => {
-      if (event.description.includes("Garoon ID:")) {
+      if (event.description && event.description.includes("Garoon ID:")) {
         apiDeleteEvent(calendarId, event.id, token);
       }
     });
