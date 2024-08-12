@@ -169,7 +169,7 @@ const apiGetFutureEvents = async (calendaId, token) => {
     const events = await response.json();
     return events.items;
   } else {
-    console.error("Error fetching events:", response.statusText);
+    showError("Failed to fetch calendar events.");
     return [];
   }
 };
@@ -188,10 +188,7 @@ const apiDeleteEvent = async (calendarId, eventId, token) => {
   if (response.ok) {
     console.log(`Event with ID: ${eventId} deleted successfully`);
   } else {
-    console.error(
-      `Error deleting event with ID: ${eventId}`,
-      response.statusText
-    );
+    showError(`Failed to delete calendar event with ID: ${eventId}`);
   }
 };
 
@@ -222,7 +219,7 @@ const apiWriteToCalendar = async (event, calendarId, token) => {
     const eventData = await response.json();
     console.log("Event created:", eventData.htmlLink);
   } else {
-    console.error("Error creating event:", response.statusText);
+    showError("Failed to create calendar events.");
   }
 };
 
