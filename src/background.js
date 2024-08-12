@@ -140,6 +140,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
     }
   }
 });
+
 const getOAuthToken = () => {
   return new Promise((resolve, reject) => {
     chrome.identity.getAuthToken({ interactive: true }, (token) => {
@@ -152,10 +153,10 @@ const getOAuthToken = () => {
   });
 };
 
-const apiGetFutureEvents = async (calendaId, token) => {
+const apiGetFutureEvents = async (calendarId, token) => {
   const now = new Date().toISOString();
   const response = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/${calendaId}/events?timeMin=${now}`,
+    `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?timeMin=${now}`,
     {
       method: "GET",
       headers: {
@@ -193,13 +194,15 @@ const apiDeleteEvent = async (calendarId, eventId, token) => {
 };
 
 const clearFutureEvents = async (calendarId, token) => {
-  apiGetFutureEvents(calendarId, token).then((events) => {
-    events.forEach((event) => {
-      if (event.description && event.description.includes("Garoon ID:")) {
-        apiDeleteEvent(calendarId, event.id, token);
-      }
-    });
-  });
+  const events = await apiGetFutureEvents(calendarId, token);
+  await Promise.all(
+    events
+      .filter(
+        (event) => event.description && event.description.includes("Garoon ID:")
+      )
+      .map((event) => apiDeleteEvent(calendarId, event.id, token))
+  );
+  console.log("Complete to delete events!");
 };
 
 const apiWriteToCalendar = async (event, calendarId, token) => {
@@ -251,7 +254,7 @@ const writeToCalendar = (data, sendResponse) => {
           },
         };
 
-        await apiWriteToCalendar(event, result.calendarId, token);
+        return apiWriteToCalendar(event, result.calendarId, token);
       })
     )
       .then(() => {
