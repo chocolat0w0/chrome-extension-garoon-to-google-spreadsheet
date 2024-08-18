@@ -1,6 +1,6 @@
 {
-  "name": "Garoon to Google",
-  "description": "This extension periodically records Garoon schedules into Google Calendar and SpreadSheets.",
+  "name": "Garoon to Google Calendar/Spreadsheet",
+  "description": "This extension periodically records Garoon schedules into Google Calendar and Spreadsheet.",
   "version": "1.2",
   "manifest_version": 3,
   "host_permissions": ["<all_urls>"],
