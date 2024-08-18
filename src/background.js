@@ -364,6 +364,7 @@ const writeToSheet = (data, sendResponse) => {
     }
   );
 };
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   switch (request.action) {
     case "start":
@@ -378,16 +379,26 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     case "write":
       try {
-        chrome.storage.sync.get(["calendarEnabled"], (result) => {
-          if (result.calendarEnabled) {
-            writeToCalendar(JSON.parse(request.data), sendResponse);
+        chrome.storage.sync.get(
+          ["calendarEnabled", "spreadsheetEnabled"],
+          (result) => {
+            if (result.calendarEnabled) {
+              writeToCalendar(JSON.parse(request.data), sendResponse);
+            }
+            if (result.spreadsheetEnabled) {
+              writeToSheet(JSON.parse(request.data), sendResponse);
+            }
+            if (!result.calendarEnabled && !result.spreadsheetEnabled) {
+              chrome.storage.local.set({ status: "success" });
+              chrome.storage.local.set(
+                { success: new Date().toLocaleString() },
+                () => {
+                  console.log("Saved Successfully: ", new Date());
+                }
+              );
+            }
           }
-        });
-        chrome.storage.sync.get(["spreadsheetEnabled"], (result) => {
-          if (result.spreadsheetEnabled) {
-            writeToSheet(JSON.parse(request.data), sendResponse);
-          }
-        });
+        );
       } catch (error) {
         showError("Invalid data format.");
         sendResponse({ status: "error" });
