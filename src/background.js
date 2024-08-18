@@ -198,7 +198,9 @@ const clearFutureEvents = async (calendarId, token) => {
   await Promise.all(
     events
       .filter(
-        (event) => event.description && event.description.includes("Garoon ID:")
+        (event) =>
+          event.description &&
+          event.description.includes("[Synced from Garoon]")
       )
       .map((event) => apiDeleteEvent(calendarId, event.id, token))
   );
@@ -243,7 +245,7 @@ const writeToCalendar = (data, sendResponse) => {
       data.map(async (d) => {
         const event = {
           summary: d.subject,
-          description: `${d.notes}\r\n\r\n----------\r\nGaroon ID: ${d.id}`,
+          description: `${d.notes}\r\n\r\n----------\r\n[Synced from Garoon] Garoon ID: ${d.id}`,
           start: {
             dateTime: d.start.dateTime,
             timeZone: d.start.timeZone,
