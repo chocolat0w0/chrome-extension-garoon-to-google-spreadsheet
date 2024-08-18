@@ -4,6 +4,8 @@ if (config.mode === "dev") {
   importScripts("data/sample.js");
 }
 
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
 const showError = (details) => {
   chrome.action.setBadgeText({ text: "!" });
   chrome.action.setBadgeBackgroundColor({ color: "#FF0000" });
@@ -107,7 +109,9 @@ const start = () => {
         ["calendarEnabled", "spreadsheetEnabled"],
         (result) => {
           if (result.calendarEnabled) {
-            writeToCalendar(sample.data.events);
+            try {
+              writeToCalendar(sample.data.events);
+            } catch (error) {}
           }
           if (result.spreadsheetEnabled) {
             writeToSheet(sample.data.events);
@@ -195,15 +199,16 @@ const apiDeleteEvent = async (calendarId, eventId, token) => {
 
 const clearFutureEvents = async (calendarId, token) => {
   const events = await apiGetFutureEvents(calendarId, token);
-  await Promise.all(
-    events
-      .filter(
-        (event) =>
-          event.description &&
-          event.description.includes("[Synced from Garoon]")
-      )
-      .map((event) => apiDeleteEvent(calendarId, event.id, token))
+
+  // Memo: Execute synchronously due to API call frequency limitations.
+  const garoonEvents = events.filter(
+    (event) =>
+      event.description && event.description.includes("[Synced from Garoon]")
   );
+  for (const event of garoonEvents) {
+    await apiDeleteEvent(calendarId, event.id, token);
+    await delay(200);
+  }
   console.log("Complete to delete events!");
 };
 
@@ -228,7 +233,7 @@ const apiWriteToCalendar = async (event, calendarId, token) => {
   }
 };
 
-const writeToCalendar = (data, sendResponse) => {
+const writeToCalendar = (data) => {
   chrome.storage.sync.get(["calendarId"], async (result) => {
     if (!result.calendarId) {
       showError("Please set the Calendar information in the options.");
@@ -241,8 +246,8 @@ const writeToCalendar = (data, sendResponse) => {
 
     await clearFutureEvents(result.calendarId, token);
 
-    Promise.all(
-      data.map(async (d) => {
+    try {
+      for (const d of data) {
         const event = {
           summary: d.subject,
           description: `${d.notes}\r\n\r\n----------\r\n[Synced from Garoon] Garoon ID: ${d.id}`,
@@ -256,27 +261,19 @@ const writeToCalendar = (data, sendResponse) => {
           },
         };
 
-        return apiWriteToCalendar(event, result.calendarId, token);
-      })
-    )
-      .then(() => {
-        if (sendResponse) {
-          sendResponse({ status: "success" });
-        }
-        chrome.storage.local.set({ status: "success" });
-        chrome.storage.local.set(
-          { success: new Date().toLocaleString() },
-          () => {
-            console.log("Saved Successfully: ", new Date());
-          }
-        );
-      })
-      .catch((error) => {
-        showError("Could not write to Calendar.");
-        if (sendResponse) {
-          sendResponse({ status: "error" });
-        }
+        await apiWriteToCalendar(event, result.calendarId, token);
+        await delay(200);
+      }
+
+      chrome.storage.local.set({ status: "success" });
+      chrome.storage.local.set({ success: new Date().toLocaleString() }, () => {
+        console.log("Saved Successfully: ", new Date());
       });
+    } catch (error) {
+      showError("Could not write to Calendar.");
+
+      throw new Error();
+    }
   });
 };
 
@@ -385,7 +382,12 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           ["calendarEnabled", "spreadsheetEnabled"],
           (result) => {
             if (result.calendarEnabled) {
-              writeToCalendar(JSON.parse(request.data), sendResponse);
+              try {
+                writeToCalendar(JSON.parse(request.data));
+                sendResponse({ status: "success" });
+              } catch (error) {
+                sendResponse({ status: "error" });
+              }
             }
             if (result.spreadsheetEnabled) {
               writeToSheet(JSON.parse(request.data), sendResponse);
