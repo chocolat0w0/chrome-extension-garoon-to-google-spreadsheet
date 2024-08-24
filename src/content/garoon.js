@@ -9,7 +9,9 @@ if (typeof garoonInitialized === "undefined") {
 }
 
 garoon.api(
-  `/api/v1/schedule/events?rangeStart=${new Date().toISOString()}&orderBy=start asc`,
+  `/api/v1/schedule/events?rangeStart=${new Date().toISOString()}&rangeEnd=${new Date(
+    new Date().getTime() + 14 * 24 * 60 * 60 * 1000 // 2 Weeks
+  ).toISOString()}&orderBy=start asc`,
   "get",
   {},
   (data) => {

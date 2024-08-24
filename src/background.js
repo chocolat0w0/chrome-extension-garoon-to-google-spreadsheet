@@ -226,7 +226,7 @@ const clearFutureEvents = async (calendarId, token) => {
   );
   for (const event of garoonEvents) {
     await apiDeleteEvent(calendarId, event.id, token);
-    await delay(200);
+    await delay(100);
   }
   console.log("Complete to delete events!");
 };
@@ -281,7 +281,7 @@ const writeToCalendar = (data) => {
         };
 
         await apiWriteToCalendar(event, result.calendarId, token);
-        await delay(200);
+        await delay(100);
       }
 
       chrome.storage.local.set({ status: "success" });
