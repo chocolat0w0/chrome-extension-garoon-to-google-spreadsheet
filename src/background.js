@@ -44,14 +44,18 @@ const getValue = (obj, path) => {
   return traverse(obj, paths);
 };
 
-chrome.runtime.onInstalled.addListener(() => {
-  // 定期実行アラームを設定
-  chrome.storage.sync.get(["garoonInterval"], (result) => {
-    const garoonInterval = result.garoonInterval || 60;
-    chrome.alarms.create("garoonAlarm", {
-      periodInMinutes: garoonInterval,
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === "install") {
+    chrome.runtime.openOptionsPage();
+  } else {
+    // Set a recurring execution alarm.
+    chrome.storage.sync.get(["garoonInterval"], (result) => {
+      const garoonInterval = result.garoonInterval || 60;
+      chrome.alarms.create("garoonAlarm", {
+        periodInMinutes: garoonInterval,
+      });
     });
-  });
+  }
 });
 
 const start = () => {
