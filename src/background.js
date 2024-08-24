@@ -159,24 +159,42 @@ const getOAuthToken = () => {
 
 const apiGetFutureEvents = async (calendarId, token) => {
   const now = new Date().toISOString();
-  const response = await fetch(
-    `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?timeMin=${now}`,
-    {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  const baseUrl = `https://www.googleapis.com/calendar/v3/calendars/${calendarId}/events?timeMin=${now}&showDeleted=false`;
+  let allEvents = [];
 
-  if (response.ok) {
-    const events = await response.json();
-    return events.items;
-  } else {
-    showError("Failed to fetch calendar events.");
-    return [];
-  }
+  const apiFetch = async (pageToken = null) => {
+    let url = baseUrl;
+    if (pageToken) {
+      url += `&pageToken=${pageToken}`;
+    }
+
+    try {
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error();
+      }
+
+      const events = await response.json();
+      allEvents.push(...events.items);
+
+      if (events.nextPageToken) {
+        await apiFetch(events.nextPageToken);
+      }
+    } catch (error) {
+      showError("Failed to fetch calendar events.");
+      allEvents = [];
+    }
+  };
+
+  await apiFetch(null);
+  return allEvents;
 };
 
 const apiDeleteEvent = async (calendarId, eventId, token) => {
@@ -199,6 +217,7 @@ const apiDeleteEvent = async (calendarId, eventId, token) => {
 
 const clearFutureEvents = async (calendarId, token) => {
   const events = await apiGetFutureEvents(calendarId, token);
+  console.log("Future events: " + events.length);
 
   // Memo: Execute synchronously due to API call frequency limitations.
   const garoonEvents = events.filter(
