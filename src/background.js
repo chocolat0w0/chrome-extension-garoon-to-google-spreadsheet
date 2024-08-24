@@ -91,7 +91,7 @@ const start = () => {
                 });
               } catch (error) {
                 showError(
-                  "Garoon is either not open in a tab or the session has expired."
+                  "Garoon is either not open in a tab or the session has expired. Please open and reload the page."
                 );
                 throw new Error();
               }
@@ -100,7 +100,7 @@ const start = () => {
 
           if (!executed) {
             showError(
-              "Garoon is either not open in a tab or the session has expired."
+              "Garoon is either not open in a tab or the session has expired. Please open and reload the page."
             );
             throw new Error();
           }
