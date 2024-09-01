@@ -138,13 +138,18 @@ const start = () => {
   }
 };
 
-// アラーム発火
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === "garoonAlarm") {
-    try {
-      start();
-    } catch (error) {
-      showError("Unknown error");
+    const currentTime = new Date().getTime();
+    const bufferedScheduledTime = alarm.scheduledTime + 30000;
+
+    // Skip duplicated alarms created while the PC is asleep.
+    if (currentTime < bufferedScheduledTime) {
+      try {
+        start();
+      } catch (error) {
+        showError("Unknown error");
+      }
     }
   }
 });
